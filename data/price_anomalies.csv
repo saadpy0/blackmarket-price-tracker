@@ -1,0 +1,2 @@
+timestamp,product_name,price,mad_anomaly,jump_anomaly,marketplace,vendor,url
+2025-07-24T00:00:00.000000,A Light in the Attic,9999.99,False,True,books.toscrape.com,anomaly_injected,http://books.toscrape.com/catalogue/page-1.html
