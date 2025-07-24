@@ -15,6 +15,19 @@ def clean_price(price):
     except ValueError:
         return None
 
+def clean_products(products):
+    """
+    Take a list of product dicts, clean the price and text fields, and return a cleaned DataFrame.
+    """
+    df = pd.DataFrame(products)
+    if 'price' in df.columns:
+        df['price'] = df['price'].apply(clean_price)
+        df = df.dropna(subset=['price'])
+    for col in ['product_name', 'vendor', 'currency']:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
+    return df
+
 def main():
     df = pd.read_csv(RAW_CSV)
     # Clean price

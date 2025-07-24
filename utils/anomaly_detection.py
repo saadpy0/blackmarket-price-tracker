@@ -53,6 +53,35 @@ def detect_anomalies(df):
             })
     return pd.DataFrame(anomalies)
 
+def detect_anomalies_api(df):
+    """
+    Like detect_anomalies, but returns a list of anomaly dicts for API JSON response.
+    """
+    anomalies = []
+    grouped = df.groupby('product_name')
+    for product, group in grouped:
+        group = group.sort_values('timestamp').reset_index(drop=True)
+        prices = group['price'].astype(float)
+        group['mad_anomaly'] = mad_based_outlier(prices)
+        group['jump_anomaly'] = False
+        for i in range(1, len(prices)):
+            prev = prices.iloc[i-1]
+            curr = prices.iloc[i]
+            if prev > 0 and (curr > prev * MAD_THRESHOLD or curr < prev / MAD_THRESHOLD):
+                group.at[i, 'jump_anomaly'] = True
+        for _, row in group[group['mad_anomaly'] | group['jump_anomaly']].iterrows():
+            anomalies.append({
+                'timestamp': row['timestamp'],
+                'product_name': product,
+                'price': row['price'],
+                'mad_anomaly': bool(row['mad_anomaly']),
+                'jump_anomaly': bool(row['jump_anomaly']),
+                'marketplace': row.get('marketplace', ''),
+                'vendor': row.get('vendor', ''),
+                'url': row.get('url', '')
+            })
+    return anomalies
+
 def main():
     df = pd.read_csv(RAW_CSV)
     anomalies_df = detect_anomalies(df)
